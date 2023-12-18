@@ -1,5 +1,5 @@
 # BSP stm32-dp83848 Component
-![latest tag](https://img.shields.io/github/v/tag/STMicroelectronics/stm32-dp83848.svg?color=brightgreen)
+
 ## Overview
 
 **STM32Cube** is an STMicroelectronics original initiative to ease developers' life by reducing efforts, time and cost.
