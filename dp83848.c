@@ -37,8 +37,6 @@
 /** @defgroup DP83848_Private_Defines DP83848 Private Defines
   * @{
   */
-#define DP83848_SW_RESET_TO    ((uint32_t)500U)
-#define DP83848_INIT_TO        ((uint32_t)2000U)
 #define DP83848_MAX_DEV_ADDR   ((uint32_t)31U)
 /**
   * @}
@@ -81,12 +79,10 @@ int32_t  DP83848_RegisterBusIO(dp83848_Object_t *pObj, dp83848_IOCtx_t *ioctx)
   * @retval DP83848_STATUS_OK  if OK
   *         DP83848_STATUS_ADDRESS_ERROR if cannot find device address
   *         DP83848_STATUS_READ_ERROR if connot read register
-  *         DP83848_STATUS_WRITE_ERROR if connot write to register
-  *         DP83848_STATUS_RESET_TIMEOUT if cannot perform a software reset
   */
  int32_t DP83848_Init(dp83848_Object_t *pObj)
  {
-   uint32_t tickstart = 0, regvalue = 0, addr = 0;
+   uint32_t regvalue = 0, addr = 0;
    int32_t status = DP83848_STATUS_OK;
 
    if(pObj->Is_Initialized == 0)
@@ -127,53 +123,8 @@ int32_t  DP83848_RegisterBusIO(dp83848_Object_t *pObj, dp83848_IOCtx_t *ioctx)
      /* if device address is matched */
      if(status == DP83848_STATUS_OK)
      {
-       /* set a software reset  */
-       if(pObj->IO.WriteReg(pObj->DevAddr, DP83848_BCR, DP83848_BCR_SOFT_RESET) >= 0)
-       {
-         /* get software reset status */
-         if(pObj->IO.ReadReg(pObj->DevAddr, DP83848_BCR, &regvalue) >= 0)
-         {
-           tickstart = pObj->IO.GetTick();
-
-           /* wait until software reset is done or timeout occured  */
-           while(regvalue & DP83848_BCR_SOFT_RESET)
-           {
-             if((pObj->IO.GetTick() - tickstart) <= DP83848_SW_RESET_TO)
-             {
-               if(pObj->IO.ReadReg(pObj->DevAddr, DP83848_BCR, &regvalue) < 0)
-               {
-                 status = DP83848_STATUS_READ_ERROR;
-                 break;
-               }
-             }
-             else
-             {
-               status = DP83848_STATUS_RESET_TIMEOUT;
-               break;
-             }
-           }
-         }
-         else
-         {
-           status = DP83848_STATUS_READ_ERROR;
-         }
-       }
-       else
-       {
-         status = DP83848_STATUS_WRITE_ERROR;
-       }
+       pObj->Is_Initialized = 1;
      }
-   }
-
-   if(status == DP83848_STATUS_OK)
-   {
-     tickstart =  pObj->IO.GetTick();
-
-     /* Wait for 2s to perform initialization */
-     while((pObj->IO.GetTick() - tickstart) <= DP83848_INIT_TO)
-     {
-     }
-     pObj->Is_Initialized = 1;
    }
 
    return status;
